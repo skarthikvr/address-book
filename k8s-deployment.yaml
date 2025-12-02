@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: address-book-deployment
+spec:
+  replicas: 3 # Desired number of identical pods
+  selector:
+    matchLabels:
+      app: address-book
+  template:
+    metadata:
+      labels:
+        app: address-book
+    spec:
+      containers:
+      - name: address-book
+        #image: test2.jar:latest # The Docker image to use
+        image: docker.io/scarthikvr/demo1:v3 # The Docker image to use
+        ports:
+        - containerPort: 8080 # The port the container listens on
