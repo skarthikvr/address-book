@@ -1,19 +1,22 @@
 # address-book
-The Address Book application is written in Java (Open JDK 21) + Spring Boot 4 and leveraged in mem H2 database. 
+The Address Book application is written in <ins>Java (Open JDK 21) + Spring Boot 4</ins> and leveraged in memory <ins>H2 database</ins>. 
 REST API docs are available using Swagger that can be accessed at http://localhost:8080/swagger-ui/index.html
 
-Acceptance Criteria:
+```
 1. Address book will hold name and phone numbers of contact entries
-Create a REST API which will have endpoints for the following -
-2. Users should be able to add new contact entries
-3. Users should be able to remove existing contact entries
-4. Users should be able to print all contacts in an address book
-5. Users should be able to maintain multiple address books
-6. Users should be able to print a unique set of all contacts across multiple address books
-7. Unit Tests
-8. Integration Tests
-9. Containerized the application - Pushed the docker image in Docker hub. Dockerfile and docker-compose.yaml have the details.
-Docker Image URI - scarthikvr/demo1:v3
+2. REST API have the following endpoints  -
+a. Users should be able to add new contact entries
+b. Users should be able to remove existing contact entries
+c. Users should be able to print all contacts in an address book
+d. Users should be able to maintain multiple address books
+e. Users should be able to print a unique set of all contacts across multiple address books
+
+3. Unit Tests
+4. Integration Tests
+5. Containerized the application - Pushed the docker image in Docker hub. Dockerfile and docker-compose.yaml have the details.
+```
+
+**Docker Image URI - <ins>scarthikvr/demo1:v3</ins>**
 
 
 
