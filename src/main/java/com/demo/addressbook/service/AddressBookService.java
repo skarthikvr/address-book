@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Iterator;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -28,9 +29,16 @@ public class AddressBookService {
 		this.contactRepository = contactRepository;
 	}
 
+	@Transactional
 	public AddressBook addAddressBook(String name) {
 		if (name == null || name.trim().isEmpty()) {
 			throw new InputValidationException("Address Book name cannot be null or empty");
+		}
+		
+		//Check if Address Book with same name already exists
+		boolean addressBookExists = repository.findAll().stream().anyMatch(ab -> ab.getName().toLowerCase().equalsIgnoreCase(name.trim().toLowerCase()));
+		if (addressBookExists) {
+			throw new DataIntegrityViolationException("Address Book with same name already exists");
 		}
 		AddressBook addressBook = new AddressBook(name.trim());
 		return repository.save(addressBook);
@@ -50,8 +58,12 @@ public class AddressBookService {
 		List<Contact> contacts = contactRepository.findAll();
 		Contact existingContact = null;
 		if (!contacts.isEmpty()) {
-			existingContact = contacts.stream().filter(c -> c.getFirstName().equals(contact.firstName().trim())
-					&& c.getLastName().equals(contact.lastName().trim())).findFirst().get();
+			boolean anyContactExists = contacts.stream().anyMatch(c -> c.getFirstName().equals(contact.firstName().trim())
+					&& c.getLastName().equals(contact.lastName().trim()));
+			if (anyContactExists) {
+				existingContact = contacts.stream().filter(c -> c.getFirstName().equals(contact.firstName().trim())
+						&& c.getLastName().equals(contact.lastName().trim())).findFirst().get();
+			}
 		}
 
 		if (existingContact != null) {
@@ -132,21 +144,26 @@ public class AddressBookService {
 		boolean contactExistsInAddressBook = addressBook.getContacts().stream()
 				.anyMatch(c -> contact.contactId() != null && c.getContactId().longValue() == (contact.contactId().longValue()));
 		if (contactExistsInAddressBook) {
-			addressBook.getContacts().iterator().forEachRemaining(c -> {
-				if (contact.contactId() != null && c.getContactId().longValue() == (contact.contactId().longValue())) {
-					addressBook.getContacts().remove(c);
+			// Use iterator to remove while iterating to avoid ConcurrentModificationException
+			Iterator<Contact> iterator = addressBook.getContacts().iterator();
+			while (iterator.hasNext()) {
+				Contact c = iterator.next();
+				if (contact.contactId() != null && c.getContactId().longValue() == contact.contactId().longValue()) {
+					iterator.remove();
 					c.getAddressBooks().remove(addressBook);
 				}
-			});
+			}
 			repository.save(addressBook);
-	
+
 			// Since it is ManyToMany Mapping and Contact is not the owner, it has to be
 			// explicitly deleted if it has become and orphan
 			Contact contactFromDb = contactRepository.findById(contact.contactId()).get();
-	
+
 			if (contactFromDb.getAddressBooks().isEmpty()) {
 				contactRepository.deleteById(contactFromDb.getContactId());
 			}
+		} else {
+			throw new InputValidationException("Contact not found in Address Book");
 		}
 
 		return "Successfully removed contact from Address Book";
